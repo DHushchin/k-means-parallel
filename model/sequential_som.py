@@ -1,8 +1,10 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 from typing import Tuple
+from model.base import BaseSOM
 
-class SOM:
+
+class SequentialSOM(BaseSOM):
     def __init__(self, map_size: Tuple[int, int], n_features: int, learning_rate: float):
         self.map_size = map_size
         self.n_features = n_features
