@@ -1,54 +1,30 @@
-from model.sequential_som import SequentialSOM
-from model.parallel_som import ParallelSOM
-
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+import numpy as np
+from sklearn.datasets import make_blobs
 import time
+
+from model.sequential_kmeans import KMeansSequential
+from model.parallel_kmeans import KMeansParallel
 
 
 def main():
-    data = pd.read_csv('data/rfm.csv')
-    train_data = data.drop(['CustomerID'], axis=1)
-    train_data = train_data.values
+    train_data, _ = make_blobs(n_samples=1000000, n_features=10, centers=3, cluster_std=1.0, shuffle=True, random_state=42)
 
-    # Run sequential SOM
-    som_model = SequentialSOM(map_size=(30, 30), n_features=train_data.shape[1], learning_rate=0.5)
     start_time = time.time()
-    som_model.train(train_data, n_epochs=10)
-    print('Sequential SOM training finished in {:.2f} seconds'.format(time.time() - start_time))
-    som_model.save_weights('data/som_weights.npy')
-    res = []
-    for i in range(len(data)):
-        x = data.loc[i, ['Recency', 'Frequency', 'Monetary']].values
-        cluster = som_model.predict(x)
-        res.append((data.loc[i, 'CustomerID'], cluster))
+    kmeans_seq = KMeansSequential(k=3)
+    kmeans_seq.fit(train_data)
+    print(f"Sequential KMeans time: {time.time() - start_time:.2f} seconds")
+    kmeans_seq.save_model('model/weights/sequential_kmeans.npy')
+    pred1 = kmeans_seq.predict(train_data)
+    
 
-    # Encode and save clusters
-    encoder = LabelEncoder()
-    clusters = [(customer_id, cluster[1]) for customer_id, cluster in res]
-    clusters = pd.DataFrame(clusters, columns=['CustomerID', 'Cluster'])
-    clusters['Cluster'] = encoder.fit_transform(clusters['Cluster'])
-    print('We have {} clusters'.format(len(clusters['Cluster'].unique())))
-    clusters.to_csv('data/clusters.csv', index=False)
-
-    # Run parallel SOM
-    som_model = ParallelSOM(map_size=(30, 30), n_features=train_data.shape[1], learning_rate=0.5)
     start_time = time.time()
-    som_model.train(train_data, n_epochs=10, n_threads=2)
-    print('Parallel SOM training finished in {:.2f} seconds'.format(time.time() - start_time))
-    som_model.save_weights('data/parallel_som_weights.npy')
-    res = []
-    for i in range(len(data)):
-        x = data.loc[i, ['Recency', 'Frequency', 'Monetary']].values
-        cluster = som_model.predict(x)
-        res.append((data.loc[i, 'CustomerID'], cluster))
-
-    encoder = LabelEncoder()
-    clusters = [(customer_id, cluster[1]) for customer_id, cluster in res]
-    clusters = pd.DataFrame(clusters, columns=['CustomerID', 'Cluster'])
-    clusters['Cluster'] = encoder.fit_transform(clusters['Cluster'])
-    print('We have {} clusters'.format(len(clusters['Cluster'].unique())))
-    clusters.to_csv('data/parallel_clusters.csv', index=False)
+    kmeans_par = KMeansParallel(k=3)
+    kmeans_par.fit(train_data)
+    print(f"Parallel KMeans time: {time.time() - start_time:.2f} seconds")
+    kmeans_par.save_model('model/weights/parallel_kmeans.npy')
+    pred2 = kmeans_par.predict(train_data)
+    
+    print(f"Are the predictions equal? {np.array_equal(pred1, pred2)}")
 
 
 if __name__ == '__main__':
