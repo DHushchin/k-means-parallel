@@ -7,7 +7,7 @@ from model.parallel_kmeans import KMeansParallel
 
 
 def main():
-    train_data, _ = make_blobs(n_samples=1000000, n_features=10, centers=3, cluster_std=1.0, shuffle=True, random_state=42)
+    train_data, _ = make_blobs(n_samples=100000, n_features=10, centers=3, cluster_std=1.0, shuffle=True, random_state=42)
 
     start_time = time.time()
     kmeans_seq = KMeansSequential(k=3)

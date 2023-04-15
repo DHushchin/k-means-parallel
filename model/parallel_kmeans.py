@@ -1,15 +1,16 @@
+import os
 import numpy as np
-import threading
+from threading import Thread
 from model.base_kmeans import BaseKMeans
 
 
 class KMeansParallel(BaseKMeans):
-    def __init__(self, k, n_iters=100, n_threads=4):
+    def __init__(self, k, n_iters=100, n_threads=os.cpu_count()):
         self.k = k
         self.n_iters = n_iters
         self.n_threads = n_threads
         self.centroids = None
-        # self.lock = threading.Lock()
+        print(f"Using {self.n_threads} threads")
     
     def _compute_centroids(self, X, labels):
         centroids = []
@@ -40,15 +41,17 @@ class KMeansParallel(BaseKMeans):
     def fit(self, X):
         n_samples = X.shape[0]
         labels = np.zeros(n_samples, dtype=int)
+        
         np.random.seed(42)
         self.centroids = np.random.rand(self.k, X.shape[1])
+        
         chunk_size = n_samples // self.n_threads
         threads = []
         
         for i in range(self.n_threads):
             start_idx = i * chunk_size
             end_idx = (i + 1) * chunk_size if i < self.n_threads - 1 else n_samples
-            t = threading.Thread(target=self._fit_thread, args=(X, start_idx, end_idx, labels))
+            t = Thread(target=self._fit_thread, args=(X, start_idx, end_idx, labels))
             threads.append(t)
             t.start()
         

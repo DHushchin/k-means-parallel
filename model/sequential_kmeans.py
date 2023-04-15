@@ -32,6 +32,7 @@ class KMeansSequential(BaseKMeans):
     def fit(self, X):
         n_samples = X.shape[0]
         labels = np.zeros(n_samples, dtype=int)
+        
         np.random.seed(42)
         self.centroids = np.random.rand(self.k, X.shape[1])
         
