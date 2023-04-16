@@ -25,8 +25,8 @@ def main():
 
     print(f"Are the predictions equal? {np.array_equal(pred1, pred2)}")
     
-    kmeans_seq.plot_clusters(train_data)
-    kmeans_par.plot_clusters(train_data)
+    kmeans_seq.plot_clusters(train_data, 'Sequential KMeans')
+    kmeans_par.plot_clusters(train_data, 'Parallel KMeans')
 
 
 if __name__ == '__main__':

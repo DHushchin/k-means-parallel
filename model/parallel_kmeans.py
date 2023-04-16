@@ -9,7 +9,6 @@ class KMeansParallel(BaseKMeans):
         super().__init__(k, max_iter, tol, random_state)
         self.n_threads = n_threads
 
-
     def fit(self, X):
         if self.random_state is not None:
             np.random.seed(self.random_state)
@@ -22,7 +21,6 @@ class KMeansParallel(BaseKMeans):
             centroids = self._compute_centroids(X, labels)
             
             self.centroids = centroids
-
 
     def _assign_points_to_centroids(self, X, centroids):
         labels = np.zeros(X.shape[0], dtype=int)
@@ -45,7 +43,6 @@ class KMeansParallel(BaseKMeans):
 
         return labels
     
-
     def _compute_centroids(self, X, labels):
         centroids = np.zeros((self.k, X.shape[1]))
 
@@ -68,9 +65,3 @@ class KMeansParallel(BaseKMeans):
 
         return centroids
     
-        
-    def plot_clusters(self, X):
-        plt.scatter(X[:, 0], X[:, 1], c=self.predict(X), s=40, cmap='viridis')
-        plt.scatter(self.centroids[:, 0], self.centroids[:, 1], c='black', s=200)
-        plt.title('Parallel K-Means')
-        plt.show()

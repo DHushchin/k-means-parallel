@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 from model.base_kmeans import BaseKMeans
 
@@ -21,11 +20,9 @@ class KMeansSequential(BaseKMeans):
             
             self.centroids = centroids
 
-
     def _assign_points_to_centroids(self, X, centroids):
         distances = np.linalg.norm(X[:, np.newaxis, :] - centroids, axis=2)
         return np.argmin(distances, axis=1)
-
 
     def _compute_centroids(self, X, labels):
         centroids = []
@@ -38,10 +35,3 @@ class KMeansSequential(BaseKMeans):
             centroids.append(centroid)
 
         return np.array(centroids)
-
-
-    def plot_clusters(self, X):
-        plt.scatter(X[:, 0], X[:, 1], c=self.predict(X), s=40, cmap='viridis')
-        plt.scatter(self.centroids[:, 0], self.centroids[:, 1], c='black', s=200)
-        plt.title('Sequential K-Means')
-        plt.show()
