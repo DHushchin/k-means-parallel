@@ -4,8 +4,8 @@ from model.base_kmeans import BaseKMeans
 
 
 class KMeansSequential(BaseKMeans):
-    def __init__(self, k=3, max_iter=100, tol=1e-4, random_state=42):
-        super().__init__(k, max_iter, tol, random_state)
+    def __init__(self, k=3, max_iter=100, random_state=42):
+        super().__init__(k, max_iter, random_state)
 
     def fit(self, X):
         if self.random_state is not None:

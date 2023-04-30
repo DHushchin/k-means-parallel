@@ -1,12 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import threading
+import os
 
 from model.base_kmeans import BaseKMeans
 
 class KMeansParallel(BaseKMeans):
-    def __init__(self, k=3, max_iter=100, tol=1e-4, random_state=42, n_threads=4):
-        super().__init__(k, max_iter, tol, random_state)
+    def __init__(self, k=3, max_iter=100, random_state=42, n_threads=8):
+        super().__init__(k, max_iter, random_state)
         self.n_threads = n_threads
 
     def fit(self, X):
