@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import threading
-import os
+from concurrent.futures import ThreadPoolExecutor
 
 from model.base_kmeans import BaseKMeans
 
+
 class KMeansParallel(BaseKMeans):
-    def __init__(self, k=3, max_iter=100, random_state=42, n_threads=8):
+    def __init__(self, k, max_iter=100, random_state=42, n_threads=8):
         super().__init__(k, max_iter, random_state)
         self.n_threads = n_threads
 
@@ -31,16 +31,11 @@ class KMeansParallel(BaseKMeans):
             distances = np.linalg.norm(X[start_idx:end_idx, np.newaxis, :] - centroids, axis=2)
             labels[start_idx:end_idx] = np.argmin(distances, axis=1)
 
-        threads = []
-        for i in range(self.n_threads):
-            start_idx = i * step
-            end_idx = start_idx + step if i < self.n_threads - 1 else X.shape[0]
-            t = threading.Thread(target=assign_points_thread, args=(start_idx, end_idx))
-            threads.append(t)
-            t.start()
-
-        for t in threads:
-            t.join()
+        with ThreadPoolExecutor(max_workers=self.n_threads) as executor:
+            for i in range(self.n_threads):
+                start_idx = i * step
+                end_idx = start_idx + step
+                executor.submit(assign_points_thread, start_idx, end_idx)
 
         return labels
     
@@ -55,14 +50,7 @@ class KMeansParallel(BaseKMeans):
                 centroid = np.random.rand(X.shape[1])
             centroids[i] = centroid
 
-        threads = []
-        for i in range(self.k):
-            t = threading.Thread(target=compute_centroids_thread, args=(i,))
-            threads.append(t)
-            t.start()
-
-        for t in threads:
-            t.join()
-
+        with ThreadPoolExecutor(max_workers=self.n_threads) as executor:
+            executor.map(compute_centroids_thread, range(self.k))
+        
         return centroids
-    
