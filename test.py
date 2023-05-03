@@ -27,24 +27,26 @@ def generate_data(n_samples, n_features, n_clusters):
     )[0]
 
 
-def train_kmeans(train_data, k, mode):
+def train_kmeans(train_data, k, mode, n_threads=8):
     """Train the KMeans algorithm on the given data.
     
     Args:
         train_data (np.ndarray): Data to train the algorithm on.
         mode (str): Mode of the algorithm (sequential or parallel).
+        k (int): Number of clusters.
+        n_threads (int, optional): Number of threads to use for the parallel algorithm. Defaults to 8.
         
     Returns:
         float: Execution time of the algorithm.
     """
-    kmeans = kmeans_factory(k, mode)
+    kmeans = kmeans_factory(k, mode, n_threads)
         
     start_time = time.time()
     kmeans.fit(train_data)
     return time.time() - start_time
 
 
-def plot_speedup(n_vals, seq_times, par_times):
+def plot_speedup(n_vals, seq_times, par_times, val_name):
     """Plot the speedup of the parallel KMeans algorithm compared to the sequential one.
 
     Args:
@@ -55,11 +57,11 @@ def plot_speedup(n_vals, seq_times, par_times):
     speedup = [seq_time / par_time for seq_time, par_time in zip(seq_times, par_times)]
     fig, ax = plt.subplots()
     ax.plot(n_vals, speedup)
-    ax.set_xlabel('Number of samples')
+    ax.set_xlabel(f'Number of {val_name}')
     ax.set_ylabel('Speedup')
     ax.set_title('Parallel KMeans speedup compared to Sequential KMeans')
     
-    fig.savefig('results/speedup_vs_samples.png')
+    fig.savefig(f'results/speedup/speedup_vs_{val_name}.png')
     
     
 def plot_time(n_vals, seq_times, par_times, val_name):
@@ -81,7 +83,7 @@ def plot_time(n_vals, seq_times, par_times, val_name):
     ax.set_title('Sequential vs Parallel KMeans time comparison')
     
     ax.legend()
-    fig.savefig(f'results/time_vs_{val_name}.png')
+    fig.savefig(f'results/time/time_vs_{val_name}.png')
     
 
 def test_samples():
@@ -93,14 +95,14 @@ def test_samples():
 
     seq_times = []
     par_times = []
-    n_vals = tuple(range(100000, 1000001, 100000))
+    n_vals = tuple(range(100000, 1000001, 50000))
     
     for n in n_vals:
         seq_times.append(train_kmeans(train_data[:n].copy(), n_clusters, 'sequential'))
         par_times.append(train_kmeans(train_data[:n].copy(), n_clusters, 'parallel'))
 
     plot_time(n_vals, seq_times, par_times, 'samples')
-    plot_speedup(n_vals, seq_times, par_times)
+    plot_speedup(n_vals, seq_times, par_times, 'samples')
     
     
 def test_features():
@@ -109,7 +111,7 @@ def test_features():
     print('Testing features')
     seq_times = []
     par_times = []
-    n_features_vals = tuple(range(2, 101, 10))
+    n_features_vals = tuple(range(2, 101, 5))
     
     for n_features in n_features_vals:
         n_clusters = 5
@@ -118,6 +120,7 @@ def test_features():
         par_times.append(train_kmeans(train_data, n_clusters, 'parallel'))
 
     plot_time(n_features_vals, seq_times, par_times, 'features')
+    plot_speedup(n_features_vals, seq_times, par_times, 'features')
     
 
 def test_clusters():
@@ -126,14 +129,32 @@ def test_clusters():
     print('Testing clusters')
     seq_times = []
     par_times = []
-    centers_vals = tuple(range(2, 102, 10))
+    centers_vals = tuple(range(2, 102, 5))
     
     for centers in centers_vals:
-        train_data = generate_data(n_samples=centers * 1000, n_features=2, n_clusters=centers)
+        train_data = generate_data(n_samples=centers, n_features=2, n_clusters=centers)
         seq_times.append(train_kmeans(train_data, centers, 'sequential'))
         par_times.append(train_kmeans(train_data, centers, 'parallel'))
         
     plot_time(centers_vals, seq_times, par_times, 'clusters')
+    plot_speedup(centers_vals, seq_times, par_times, 'clusters')
+
+
+def test_threads():
+    """Test the parallel KMeans algorithm with different number of threads.
+    """
+    print('Testing threads')
+    seq_times = []
+    par_times = []
+    threads_vals = tuple(range(1, 101, 5))
+    
+    for threads in threads_vals:
+        train_data = generate_data(n_samples=1000000, n_features=2, n_clusters=5)
+        seq_times.append(train_kmeans(train_data, 5, 'sequential', threads))
+        par_times.append(train_kmeans(train_data, 5, 'parallel', threads))
+        
+    plot_time(threads_vals, seq_times, par_times, 'threads')
+    plot_speedup(threads_vals, seq_times, par_times, 'threads')
 
 
 def test_kmeans():
@@ -143,3 +164,4 @@ def test_kmeans():
     test_samples()
     test_features()
     test_clusters()
+    test_threads()
