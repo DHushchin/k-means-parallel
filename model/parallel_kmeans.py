@@ -51,6 +51,7 @@ class KMeansParallel(BaseKMeans):
             centroids[i] = centroid
 
         with ThreadPoolExecutor(max_workers=self.n_threads) as executor:
-            executor.map(compute_centroids_thread, range(self.k))
+            for i in range(self.k):
+                executor.map(compute_centroids_thread, range(self.k))
         
         return centroids
